@@ -116,13 +116,26 @@ func (b *azureAuthBackend) pathLogin(ctx context.Context, req *logical.Request, 
 			Period:      role.Period,
 			NumUses:     role.NumUses,
 			Alias: &logical.Alias{
-				Name: idToken.Subject,
+				Name: claims.UserPrincipleName,
+				Metadata: map[string]string{
+					"role":       roleName,
+					"Subject":    idToken.Subject,
+					"GivenName":  claims.GivenName,
+					"FamilyName": claims.FamilyName,
+					"ObjectID":   claims.ObjectID,
+					"email":      claims.UniqueName,
+				},
 			},
 			InternalData: map[string]interface{}{
 				"role": roleName,
 			},
 			Metadata: map[string]string{
-				"role": roleName,
+				"role":       roleName,
+				"Subject":    idToken.Subject,
+				"GivenName":  claims.GivenName,
+				"FamilyName": claims.FamilyName,
+				"ObjectID":   claims.ObjectID,
+				"email":      claims.UniqueName,
 			},
 			LeaseOptions: logical.LeaseOptions{
 				Renewable: true,
@@ -298,9 +311,13 @@ func (b *azureAuthBackend) pathLoginRenew(ctx context.Context, req *logical.Requ
 }
 
 type additionalClaims struct {
-	NotBefore jsonTime `json:"nbf"`
-	ObjectID  string   `json:"oid"`
-	GroupIDs  []string `json:"groups"`
+	NotBefore         jsonTime `json:"nbf"`
+	ObjectID          string   `json:"oid"`
+	GroupIDs          []string `json:"groups"`
+	GivenName         string   `json:"given_name"`
+	FamilyName        string   `json:"family_name"`
+	UserPrincipleName string   `json:"upn"`
+	UniqueName        string   `json:"unique_name"`
 }
 
 const pathLoginHelpSyn = `Authenticates Azure Managed Service Identities with Vault.`
